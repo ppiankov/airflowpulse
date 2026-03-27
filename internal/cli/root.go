@@ -21,4 +21,6 @@ func init() {
 	rootCmd.AddCommand(statusCmd)
 	rootCmd.AddCommand(doctorCmd)
 	rootCmd.AddCommand(initCmd)
+	rootCmd.AddCommand(whyCmd)
+	rootCmd.AddCommand(pulseCmd)
 }

@@ -1,6 +1,8 @@
 package collector
 
 import (
+	"context"
+
 	"github.com/ppiankov/airflowpulse/internal/airflow"
 )
 
@@ -10,6 +12,16 @@ type Collector interface {
 	Name() string
 
 	// Collect gathers metrics from an Airflow instance.
-	// instance is the host label identifying which Airflow is being polled.
-	Collect(client *airflow.Client, instance string) error
+	Collect(ctx context.Context, client *airflow.Client, instance string) error
+}
+
+// All returns every registered collector.
+func All() []Collector {
+	return []Collector{
+		&Scheduler{},
+		&DAGRuns{},
+		&TaskInstances{},
+		&Pools{},
+		&ImportErrors{},
+	}
 }
