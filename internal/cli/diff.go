@@ -27,7 +27,7 @@ func init() {
 	diffCmd.Flags().Duration("since", 0, "Compare against snapshot from N ago (unused if snapshot dir is empty)")
 }
 
-const snapshotDir = "/tmp/airflowpulse/snapshots"
+var snapshotDir = "/tmp/airflowpulse/snapshots"
 
 // DiffSnapshot is the saved state for comparison.
 type DiffSnapshot struct {
@@ -89,7 +89,7 @@ func runDiff(cmd *cobra.Command, args []string) error {
 	_ = saveSnapshot(current)
 
 	if prevErr != nil {
-		fmt.Fprintf(cmd.OutOrStdout(), "No previous snapshot found. Current state saved. Run again to see changes.\n")
+		_, _ = fmt.Fprintf(cmd.OutOrStdout(), "No previous snapshot found. Current state saved. Run again to see changes.\n")
 		return nil
 	}
 
@@ -245,39 +245,39 @@ func printDiffText(cmd *cobra.Command, result DiffResult) error {
 	w := cmd.OutOrStdout()
 
 	if !result.HasChanges {
-		fmt.Fprintf(w, "No changes since %s\n", result.Since)
+		_, _ = fmt.Fprintf(w, "No changes since %s\n", result.Since)
 		return nil
 	}
 
-	fmt.Fprintf(w, "Changes since %s:\n\n", result.Since)
+	_, _ = fmt.Fprintf(w, "Changes since %s:\n\n", result.Since)
 
 	if len(result.NewFailures) > 0 {
-		fmt.Fprintf(w, "  New failures:\n")
+		_, _ = fmt.Fprintf(w, "  New failures:\n")
 		for _, f := range result.NewFailures {
-			fmt.Fprintf(w, "    [x] %s\n", f)
+			_, _ = fmt.Fprintf(w, "    [x] %s\n", f)
 		}
 	}
 
 	if len(result.Recoveries) > 0 {
-		fmt.Fprintf(w, "  Recoveries:\n")
+		_, _ = fmt.Fprintf(w, "  Recoveries:\n")
 		for _, r := range result.Recoveries {
-			fmt.Fprintf(w, "    [+] %s\n", r)
+			_, _ = fmt.Fprintf(w, "    [+] %s\n", r)
 		}
 	}
 
 	if len(result.PoolChanges) > 0 {
-		fmt.Fprintf(w, "  Pool changes:\n")
+		_, _ = fmt.Fprintf(w, "  Pool changes:\n")
 		for _, pc := range result.PoolChanges {
-			fmt.Fprintf(w, "    %s: open %d -> %d\n", pc.Pool, pc.Before, pc.After)
+			_, _ = fmt.Fprintf(w, "    %s: open %d -> %d\n", pc.Pool, pc.Before, pc.After)
 		}
 	}
 
 	if result.SchedulerDiff != nil {
-		fmt.Fprintf(w, "  Scheduler: %s -> %s\n", result.SchedulerDiff.Before, result.SchedulerDiff.After)
+		_, _ = fmt.Fprintf(w, "  Scheduler: %s -> %s\n", result.SchedulerDiff.Before, result.SchedulerDiff.After)
 	}
 
 	if result.ImportErrors != nil {
-		fmt.Fprintf(w, "  Import errors: %d -> %d\n", result.ImportErrors.Before, result.ImportErrors.After)
+		_, _ = fmt.Fprintf(w, "  Import errors: %d -> %d\n", result.ImportErrors.Before, result.ImportErrors.After)
 	}
 
 	return nil

@@ -8,6 +8,8 @@ import (
 	"github.com/ppiankov/airflowpulse/internal/metrics"
 )
 
+var collectorNow = time.Now
+
 // Scheduler collects scheduler and metadatabase health from GET /health.
 type Scheduler struct{}
 
@@ -28,7 +30,7 @@ func (s *Scheduler) Collect(ctx context.Context, client *airflow.Client, instanc
 	if h.Scheduler.LatestHeartbeat != "" {
 		t, perr := time.Parse(time.RFC3339, h.Scheduler.LatestHeartbeat)
 		if perr == nil {
-			age := time.Since(t).Seconds()
+			age := collectorNow().Sub(t).Seconds()
 			metrics.SchedulerHeartbeatAge.WithLabelValues(instance).Set(age)
 		}
 	}

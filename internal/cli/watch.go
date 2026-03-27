@@ -37,12 +37,12 @@ func runWithWatch(fn func(cmd *cobra.Command, args []string) error) func(cmd *co
 
 		for {
 			// Clear screen.
-			fmt.Fprint(os.Stdout, "\033[H\033[2J")
-			fmt.Fprintf(cmd.OutOrStdout(), "Last updated: %s  (Ctrl+C to stop, interval: %s)\n\n",
+			_, _ = fmt.Fprint(os.Stdout, "\033[H\033[2J")
+			_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Last updated: %s  (Ctrl+C to stop, interval: %s)\n\n",
 				time.Now().Format("15:04:05"), interval)
 
 			if err := fn(cmd, args); err != nil {
-				fmt.Fprintf(cmd.ErrOrStderr(), "Error: %v\n", err)
+				_, _ = fmt.Fprintf(cmd.ErrOrStderr(), "Error: %v\n", err)
 			}
 
 			select {

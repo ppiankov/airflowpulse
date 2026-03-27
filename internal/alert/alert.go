@@ -10,6 +10,11 @@ import (
 	"time"
 )
 
+var (
+	alertNow           = time.Now
+	telegramAPIBaseURL = "https://api.telegram.org"
+)
+
 // Sender handles alert delivery via Telegram and/or webhook.
 type Sender struct {
 	telegramToken  string
@@ -55,12 +60,14 @@ type Alert struct {
 
 // Send dispatches an alert if cooldown allows.
 func (s *Sender) Send(ctx context.Context, a Alert) error {
+	current := alertNow()
+
 	s.mu.Lock()
-	if last, ok := s.lastSent[a.Key]; ok && time.Since(last) < s.cooldown {
+	if last, ok := s.lastSent[a.Key]; ok && current.Sub(last) < s.cooldown {
 		s.mu.Unlock()
 		return nil
 	}
-	s.lastSent[a.Key] = time.Now()
+	s.lastSent[a.Key] = current
 	s.mu.Unlock()
 
 	if s.telegramToken != "" && s.telegramChatID != "" {
@@ -79,7 +86,7 @@ func (s *Sender) Send(ctx context.Context, a Alert) error {
 }
 
 func (s *Sender) sendTelegram(ctx context.Context, a Alert) error {
-	url := fmt.Sprintf("https://api.telegram.org/bot%s/sendMessage", s.telegramToken)
+	url := fmt.Sprintf("%s/bot%s/sendMessage", telegramAPIBaseURL, s.telegramToken)
 	text := fmt.Sprintf("[%s] %s\n%s\nInstance: %s", a.Severity, a.Title, a.Message, a.Instance)
 
 	body, _ := json.Marshal(map[string]string{

@@ -338,8 +338,8 @@ func investigateUpstreamFailed(ctx context.Context, client *airflow.Client, dagI
 
 func printWhyText(cmd *cobra.Command, result WhyResult) error {
 	w := cmd.OutOrStdout()
-	fmt.Fprintf(w, "Investigation: %s.%s (run: %s, instance: %s)\n", result.DagID, result.TaskID, result.RunID, result.Instance)
-	fmt.Fprintf(w, "State: %s  Verdict: %s\n\n", result.State, result.Verdict)
+	_, _ = fmt.Fprintf(w, "Investigation: %s.%s (run: %s, instance: %s)\n", result.DagID, result.TaskID, result.RunID, result.Instance)
+	_, _ = fmt.Fprintf(w, "State: %s  Verdict: %s\n\n", result.State, result.Verdict)
 
 	for _, f := range result.Chain {
 		icon := "+"
@@ -349,9 +349,9 @@ func printWhyText(cmd *cobra.Command, result WhyResult) error {
 		case "warn":
 			icon = "!"
 		}
-		fmt.Fprintf(w, "  [%s] %s: %s\n", icon, f.Check, f.Detail)
+		_, _ = fmt.Fprintf(w, "  [%s] %s: %s\n", icon, f.Check, f.Detail)
 		if f.Remediation != "" {
-			fmt.Fprintf(w, "      -> %s\n", f.Remediation)
+			_, _ = fmt.Fprintf(w, "      -> %s\n", f.Remediation)
 		}
 	}
 

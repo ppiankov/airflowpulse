@@ -12,6 +12,12 @@ const (
 	DefaultMaxDelay    = 5 * time.Second
 )
 
+var (
+	retryAfter     = time.After
+	retryBaseDelay = DefaultBaseDelay
+	retryMaxDelay  = DefaultMaxDelay
+)
+
 // Do executes fn up to maxAttempts times with exponential backoff.
 func Do(ctx context.Context, maxAttempts int, fn func() error) error {
 	var lastErr error
@@ -26,14 +32,14 @@ func Do(ctx context.Context, maxAttempts int, fn func() error) error {
 		}
 
 		if attempt < maxAttempts-1 {
-			backoff := time.Duration(math.Pow(2, float64(attempt))) * DefaultBaseDelay
-			if backoff > DefaultMaxDelay {
-				backoff = DefaultMaxDelay
+			backoff := time.Duration(math.Pow(2, float64(attempt))) * retryBaseDelay
+			if backoff > retryMaxDelay {
+				backoff = retryMaxDelay
 			}
 			select {
 			case <-ctx.Done():
 				return ctx.Err()
-			case <-time.After(backoff):
+			case <-retryAfter(backoff):
 			}
 		}
 	}

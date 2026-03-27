@@ -17,6 +17,6 @@ var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Print airflowpulse version",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Printf("airflowpulse %s\n", appVersion)
+		_, _ = fmt.Fprintf(cmd.OutOrStdout(), "airflowpulse %s\n", appVersion)
 	},
 }

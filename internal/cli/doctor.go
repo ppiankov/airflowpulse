@@ -228,7 +228,7 @@ func runInstanceChecks(ctx context.Context, client *airflow.Client, instance str
 
 func printDoctorText(cmd *cobra.Command, result DoctorResult) error {
 	w := cmd.OutOrStdout()
-	fmt.Fprintf(w, "airflowpulse doctor (v%s)\n\n", result.Version)
+	_, _ = fmt.Fprintf(w, "airflowpulse doctor (v%s)\n\n", result.Version)
 
 	for _, c := range result.Checks {
 		icon := "+"
@@ -238,13 +238,13 @@ func printDoctorText(cmd *cobra.Command, result DoctorResult) error {
 		case "warn":
 			icon = "!"
 		}
-		fmt.Fprintf(w, "  [%s] %s (%s): %s\n", icon, c.Name, c.Instance, c.Message)
+		_, _ = fmt.Fprintf(w, "  [%s] %s (%s): %s\n", icon, c.Name, c.Instance, c.Message)
 		if c.Remediation != "" {
-			fmt.Fprintf(w, "      -> %s\n", c.Remediation)
+			_, _ = fmt.Fprintf(w, "      -> %s\n", c.Remediation)
 		}
 	}
 
-	fmt.Fprintf(w, "\nOverall: %s\n", result.Status)
+	_, _ = fmt.Fprintf(w, "\nOverall: %s\n", result.Status)
 
 	if result.Status == "fail" {
 		os.Exit(1)

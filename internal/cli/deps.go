@@ -87,7 +87,9 @@ func runDeps(cmd *cobra.Command, args []string) error {
 
 func printDepsText(cmd *cobra.Command, result DepsResult, highlight string) error {
 	w := cmd.OutOrStdout()
-	fmt.Fprintf(w, "Dependencies: %s (%s)\n\n", result.DagID, result.Instance)
+	if _, err := fmt.Fprintf(w, "Dependencies: %s (%s)\n\n", result.DagID, result.Instance); err != nil {
+		return err
+	}
 
 	// Build upstream map.
 	upstream := make(map[string][]string)
@@ -137,7 +139,7 @@ func printTree(w io.Writer, taskID string, downMap map[string][]string, visited 
 		marker = ">> "
 	}
 
-	fmt.Fprintf(w, "%s%s%s%s\n", prefix, connector, marker, taskID)
+	_, _ = fmt.Fprintf(w, "%s%s%s%s\n", prefix, connector, marker, taskID)
 
 	children := downMap[taskID]
 	childPrefix := prefix

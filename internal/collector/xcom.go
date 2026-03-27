@@ -4,13 +4,12 @@ import (
 	"context"
 
 	"github.com/ppiankov/airflowpulse/internal/airflow"
-	"github.com/ppiankov/airflowpulse/internal/metadb"
 	"github.com/ppiankov/airflowpulse/internal/metrics"
 )
 
 // XCom collects XCom table bloat metrics from the metadata database.
 type XCom struct {
-	DB *metadb.Client
+	DB xcomStore
 }
 
 func (x *XCom) Name() string { return "xcom" }

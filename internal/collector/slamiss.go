@@ -4,13 +4,12 @@ import (
 	"context"
 
 	"github.com/ppiankov/airflowpulse/internal/airflow"
-	"github.com/ppiankov/airflowpulse/internal/metadb"
 	"github.com/ppiankov/airflowpulse/internal/metrics"
 )
 
 // SLAMiss collects SLA miss count from the metadata database.
 type SLAMiss struct {
-	DB *metadb.Client
+	DB slaMissStore
 }
 
 func (s *SLAMiss) Name() string { return "slamiss" }

@@ -94,7 +94,7 @@ func runStatus(cmd *cobra.Command, args []string) error {
 		instance := config.InstanceLabel(u)
 		is, serr := fetchInstanceStatus(ctx, client, instance, dagFilter, states, poolFilter)
 		if serr != nil {
-			fmt.Fprintf(cmd.ErrOrStderr(), "warning: %s: %v\n", instance, serr)
+			_, _ = fmt.Fprintf(cmd.ErrOrStderr(), "warning: %s: %v\n", instance, serr)
 			continue
 		}
 		instances = append(instances, is)
@@ -187,39 +187,39 @@ func printStatusText(cmd *cobra.Command, result StatusResult) error {
 
 	for i, inst := range result.Instances {
 		if i > 0 {
-			fmt.Fprintln(w)
+			_, _ = fmt.Fprintln(w)
 		}
-		fmt.Fprintf(w, "Instance: %s\n", inst.Instance)
-		fmt.Fprintf(w, "  Scheduler:    %s", inst.Scheduler)
+		_, _ = fmt.Fprintf(w, "Instance: %s\n", inst.Instance)
+		_, _ = fmt.Fprintf(w, "  Scheduler:    %s", inst.Scheduler)
 		if inst.HeartbeatAge != "" {
-			fmt.Fprintf(w, " (heartbeat %s ago)", inst.HeartbeatAge)
+			_, _ = fmt.Fprintf(w, " (heartbeat %s ago)", inst.HeartbeatAge)
 		}
-		fmt.Fprintln(w)
-		fmt.Fprintf(w, "  Metadatabase: %s\n", inst.Metadatabase)
+		_, _ = fmt.Fprintln(w)
+		_, _ = fmt.Fprintf(w, "  Metadatabase: %s\n", inst.Metadatabase)
 
 		if len(inst.DAGRuns) > 0 {
-			fmt.Fprintf(w, "  DAG Runs:    ")
+			_, _ = fmt.Fprintf(w, "  DAG Runs:    ")
 			parts := make([]string, 0, len(inst.DAGRuns))
 			for state, count := range inst.DAGRuns {
 				parts = append(parts, fmt.Sprintf("%s=%d", state, count))
 			}
-			fmt.Fprintln(w, strings.Join(parts, "  "))
+			_, _ = fmt.Fprintln(w, strings.Join(parts, "  "))
 		}
 
 		if len(inst.Pools) > 0 {
-			fmt.Fprintf(w, "  Pools:\n")
-			fmt.Fprintf(w, "    %-20s %6s %6s %6s %6s\n", "NAME", "USED", "QUEUED", "OPEN", "TOTAL")
+			_, _ = fmt.Fprintf(w, "  Pools:\n")
+			_, _ = fmt.Fprintf(w, "    %-20s %6s %6s %6s %6s\n", "NAME", "USED", "QUEUED", "OPEN", "TOTAL")
 			for _, p := range inst.Pools {
-				fmt.Fprintf(w, "    %-20s %6d %6d %6d %6d", p.Name, p.Used, p.Queued, p.Open, p.Total)
+				_, _ = fmt.Fprintf(w, "    %-20s %6d %6d %6d %6d", p.Name, p.Used, p.Queued, p.Open, p.Total)
 				if p.Open == 0 && p.Queued > 0 {
-					fmt.Fprint(w, "  !!")
+					_, _ = fmt.Fprint(w, "  !!")
 				}
-				fmt.Fprintln(w)
+				_, _ = fmt.Fprintln(w)
 			}
 		}
 
 		if inst.ImportErrors > 0 {
-			fmt.Fprintf(w, "  Import Errors: %d\n", inst.ImportErrors)
+			_, _ = fmt.Fprintf(w, "  Import Errors: %d\n", inst.ImportErrors)
 		}
 	}
 

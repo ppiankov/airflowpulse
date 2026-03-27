@@ -4,13 +4,12 @@ import (
 	"context"
 
 	"github.com/ppiankov/airflowpulse/internal/airflow"
-	"github.com/ppiankov/airflowpulse/internal/metadb"
 	"github.com/ppiankov/airflowpulse/internal/metrics"
 )
 
 // Executor collects executor slot utilization from the metadata database.
 type Executor struct {
-	DB *metadb.Client
+	DB executorStore
 }
 
 func (e *Executor) Name() string { return "executor" }

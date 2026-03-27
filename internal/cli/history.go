@@ -210,8 +210,8 @@ func sortFloat64s(a []float64) {
 
 func printHistoryText(cmd *cobra.Command, result HistoryResult) error {
 	w := cmd.OutOrStdout()
-	fmt.Fprintf(w, "History: %s.%s (%s)\n\n", result.DagID, result.TaskID, result.Instance)
-	fmt.Fprintf(w, "  %-30s %-12s %10s %8s  %s\n", "RUN", "STATE", "DURATION", "RETRIES", "DATE")
+	_, _ = fmt.Fprintf(w, "History: %s.%s (%s)\n\n", result.DagID, result.TaskID, result.Instance)
+	_, _ = fmt.Fprintf(w, "  %-30s %-12s %10s %8s  %s\n", "RUN", "STATE", "DURATION", "RETRIES", "DATE")
 
 	for _, e := range result.Runs {
 		dur := "N/A"
@@ -222,11 +222,11 @@ func printHistoryText(cmd *cobra.Command, result HistoryResult) error {
 		if len(date) > 19 {
 			date = date[:19]
 		}
-		fmt.Fprintf(w, "  %-30s %-12s %10s %8d  %s\n", truncate(e.RunID, 30), e.State, dur, e.Retries, date)
+		_, _ = fmt.Fprintf(w, "  %-30s %-12s %10s %8d  %s\n", truncate(e.RunID, 30), e.State, dur, e.Retries, date)
 	}
 
 	if result.Stats != nil {
-		fmt.Fprintf(w, "\n  Mean: %.1fs  P95: %.1fs  Failure rate: %.0f%%  Trend: %s\n",
+		_, _ = fmt.Fprintf(w, "\n  Mean: %.1fs  P95: %.1fs  Failure rate: %.0f%%  Trend: %s\n",
 			result.Stats.MeanDuration, result.Stats.P95Duration,
 			result.Stats.FailureRate*100, result.Stats.Trend)
 
@@ -238,7 +238,7 @@ func printHistoryText(cmd *cobra.Command, result HistoryResult) error {
 			}
 		}
 		if len(vals) > 1 {
-			fmt.Fprintf(w, "  Duration: %s\n", sparkline(vals))
+			_, _ = fmt.Fprintf(w, "  Duration: %s\n", sparkline(vals))
 		}
 	}
 
