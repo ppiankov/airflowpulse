@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.1] - 2026-03-27
+
+### Fixed
+- Add missing Secret template to Helm chart
+- Add Docker image build and push to release workflow (ghcr.io)
+- Add service filter to Grafana dashboard (service dropdown with instance cascade)
+
 ## [0.1.0] - 2026-03-27
 
 ### Added
