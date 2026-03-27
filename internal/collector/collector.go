@@ -15,7 +15,7 @@ type Collector interface {
 	Collect(ctx context.Context, client *airflow.Client, instance string) error
 }
 
-// All returns every registered collector.
+// All returns every registered API-based collector.
 func All() []Collector {
 	return []Collector{
 		&Scheduler{},
@@ -23,5 +23,7 @@ func All() []Collector {
 		&TaskInstances{},
 		&Pools{},
 		&ImportErrors{},
+		&DAGInventory{},
+		&DatasetEvents{},
 	}
 }

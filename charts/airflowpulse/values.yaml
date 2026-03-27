@@ -1,0 +1,48 @@
+replicaCount: 1
+
+image:
+  repository: ghcr.io/ppiankov/airflowpulse
+  tag: ""
+  pullPolicy: IfNotPresent
+
+airflow:
+  apiURL: "http://airflow-webserver:8080/api/v1"
+  apiUser: "admin"
+  apiPassword: "admin"
+  metadataDSN: ""
+
+metrics:
+  port: 9190
+  pollInterval: "15s"
+
+alerting:
+  telegramBotToken: ""
+  telegramChatID: ""
+  webhookURL: ""
+  cooldown: "5m"
+
+grafana:
+  url: ""
+  token: ""
+  dashboardUID: ""
+
+serviceMonitor:
+  enabled: false
+  interval: "30s"
+  labels: {}
+
+prometheusRule:
+  enabled: false
+  labels: {}
+
+resources:
+  limits:
+    cpu: 100m
+    memory: 128Mi
+  requests:
+    cpu: 50m
+    memory: 64Mi
+
+nodeSelector: {}
+tolerations: []
+affinity: {}

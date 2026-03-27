@@ -1,0 +1,95 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "airflowpulse.fullname" . }}
+  labels:
+    {{- include "airflowpulse.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "airflowpulse.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "airflowpulse.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: airflowpulse
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: metrics
+              containerPort: {{ .Values.metrics.port }}
+              protocol: TCP
+          env:
+            - name: AIRFLOW_API_URL
+              value: {{ .Values.airflow.apiURL | quote }}
+            - name: AIRFLOW_API_USER
+              value: {{ .Values.airflow.apiUser | quote }}
+            - name: AIRFLOW_API_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "airflowpulse.fullname" . }}
+                  key: airflow-api-password
+            - name: METRICS_PORT
+              value: {{ .Values.metrics.port | quote }}
+            - name: POLL_INTERVAL
+              value: {{ .Values.metrics.pollInterval | quote }}
+            {{- if .Values.airflow.metadataDSN }}
+            - name: AIRFLOW_METADATA_DSN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "airflowpulse.fullname" . }}
+                  key: metadata-dsn
+            {{- end }}
+            {{- if .Values.alerting.telegramBotToken }}
+            - name: TELEGRAM_BOT_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "airflowpulse.fullname" . }}
+                  key: telegram-bot-token
+            - name: TELEGRAM_CHAT_ID
+              value: {{ .Values.alerting.telegramChatID | quote }}
+            {{- end }}
+            {{- if .Values.alerting.webhookURL }}
+            - name: ALERT_WEBHOOK_URL
+              value: {{ .Values.alerting.webhookURL | quote }}
+            {{- end }}
+            - name: ALERT_COOLDOWN
+              value: {{ .Values.alerting.cooldown | quote }}
+            {{- if .Values.grafana.url }}
+            - name: GRAFANA_URL
+              value: {{ .Values.grafana.url | quote }}
+            - name: GRAFANA_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "airflowpulse.fullname" . }}
+                  key: grafana-token
+            - name: GRAFANA_DASHBOARD_UID
+              value: {{ .Values.grafana.dashboardUID | quote }}
+            {{- end }}
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: metrics
+            initialDelaySeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: metrics
+            initialDelaySeconds: 3
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

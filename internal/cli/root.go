@@ -23,4 +23,8 @@ func init() {
 	rootCmd.AddCommand(initCmd)
 	rootCmd.AddCommand(whyCmd)
 	rootCmd.AddCommand(pulseCmd)
+	rootCmd.AddCommand(historyCmd)
+	rootCmd.AddCommand(diffCmd)
+	rootCmd.AddCommand(depsCmd)
+	rootCmd.AddCommand(streamCmd)
 }

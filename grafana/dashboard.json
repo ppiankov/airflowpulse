@@ -1,0 +1,155 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "links": [],
+  "panels": [
+    {
+      "title": "Instance Health",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 },
+      "targets": [{ "expr": "airflow_up", "legendFormat": "{{ instance }}" }],
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            { "options": { "0": { "text": "DOWN", "color": "red" }, "1": { "text": "UP", "color": "green" } }, "type": "value" }
+          ]
+        }
+      }
+    },
+    {
+      "title": "Scheduler Health",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 },
+      "targets": [{ "expr": "airflow_scheduler_healthy", "legendFormat": "{{ instance }}" }],
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            { "options": { "0": { "text": "UNHEALTHY", "color": "red" }, "1": { "text": "HEALTHY", "color": "green" } }, "type": "value" }
+          ]
+        }
+      }
+    },
+    {
+      "title": "Scheduler Heartbeat Age",
+      "type": "gauge",
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 0 },
+      "targets": [{ "expr": "airflow_scheduler_heartbeat_seconds_ago", "legendFormat": "{{ instance }}" }],
+      "fieldConfig": { "defaults": { "unit": "s", "thresholds": { "steps": [{ "value": 0, "color": "green" }, { "value": 30, "color": "yellow" }, { "value": 60, "color": "red" }] } } }
+    },
+    {
+      "title": "Import Errors",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 0 },
+      "targets": [{ "expr": "airflow_import_errors", "legendFormat": "{{ instance }}" }],
+      "fieldConfig": { "defaults": { "thresholds": { "steps": [{ "value": 0, "color": "green" }, { "value": 1, "color": "red" }] } } }
+    },
+    {
+      "title": "DAG Runs by State",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 },
+      "targets": [{ "expr": "airflow_dag_runs_total", "legendFormat": "{{ state }}" }],
+      "fieldConfig": { "defaults": { "custom": { "fillOpacity": 20, "stacking": { "mode": "normal" } } } }
+    },
+    {
+      "title": "Task Instances by State",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 4 },
+      "targets": [{ "expr": "airflow_task_instances_total", "legendFormat": "{{ state }}" }],
+      "fieldConfig": { "defaults": { "custom": { "fillOpacity": 20, "stacking": { "mode": "normal" } } } }
+    },
+    {
+      "title": "Pool Utilization",
+      "type": "bargauge",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 12 },
+      "targets": [
+        { "expr": "airflow_pool_used_slots", "legendFormat": "{{ pool }} used" },
+        { "expr": "airflow_pool_queued_slots", "legendFormat": "{{ pool }} queued" },
+        { "expr": "airflow_pool_open_slots", "legendFormat": "{{ pool }} open" }
+      ]
+    },
+    {
+      "title": "Pool Open Slots",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 12 },
+      "targets": [{ "expr": "airflow_pool_open_slots", "legendFormat": "{{ pool }}" }],
+      "fieldConfig": { "defaults": { "thresholds": { "steps": [{ "value": 0, "color": "red" }, { "value": 1, "color": "yellow" }, { "value": 5, "color": "green" }] } } }
+    },
+    {
+      "title": "DAG Count",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 4, "x": 0, "y": 20 },
+      "targets": [{ "expr": "airflow_dags_total", "legendFormat": "{{ instance }}" }]
+    },
+    {
+      "title": "Paused DAGs",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 4, "x": 4, "y": 20 },
+      "targets": [{ "expr": "airflow_dags_paused", "legendFormat": "{{ instance }}" }]
+    },
+    {
+      "title": "Zombie Tasks",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 4, "x": 8, "y": 20 },
+      "targets": [{ "expr": "airflow_zombie_tasks", "legendFormat": "{{ instance }}" }],
+      "fieldConfig": { "defaults": { "thresholds": { "steps": [{ "value": 0, "color": "green" }, { "value": 1, "color": "red" }] } } }
+    },
+    {
+      "title": "Scrape Duration",
+      "type": "timeseries",
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 20 },
+      "targets": [{ "expr": "airflow_scrape_duration_seconds", "legendFormat": "{{ instance }}" }],
+      "fieldConfig": { "defaults": { "unit": "s" } }
+    },
+    {
+      "title": "Scrape Errors",
+      "type": "timeseries",
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 20 },
+      "targets": [{ "expr": "rate(airflow_scrape_errors_total[5m])", "legendFormat": "{{ instance }}" }]
+    },
+    {
+      "title": "SLA Misses (metadata DB)",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 4, "x": 0, "y": 24 },
+      "targets": [{ "expr": "airflow_sla_misses_total", "legendFormat": "{{ instance }}" }],
+      "fieldConfig": { "defaults": { "thresholds": { "steps": [{ "value": 0, "color": "green" }, { "value": 1, "color": "orange" }] } } }
+    },
+    {
+      "title": "XCom Rows",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 4, "x": 4, "y": 24 },
+      "targets": [{ "expr": "airflow_xcom_rows", "legendFormat": "{{ instance }}" }]
+    },
+    {
+      "title": "XCom Size",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 4, "x": 8, "y": 24 },
+      "targets": [{ "expr": "airflow_xcom_bytes", "legendFormat": "{{ instance }}" }],
+      "fieldConfig": { "defaults": { "unit": "bytes" } }
+    },
+    {
+      "title": "Executor Slots",
+      "type": "bargauge",
+      "gridPos": { "h": 4, "w": 12, "x": 12, "y": 24 },
+      "targets": [{ "expr": "airflow_executor_slots", "legendFormat": "{{ state }}" }]
+    }
+  ],
+  "schemaVersion": 39,
+  "tags": ["airflow", "airflowpulse"],
+  "templating": {
+    "list": [
+      {
+        "name": "instance",
+        "type": "query",
+        "query": "label_values(airflow_up, instance)",
+        "refresh": 2,
+        "multi": true,
+        "includeAll": true
+      }
+    ]
+  },
+  "time": { "from": "now-1h", "to": "now" },
+  "title": "airflowpulse",
+  "uid": "airflowpulse"
+}

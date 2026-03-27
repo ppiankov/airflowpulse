@@ -74,6 +74,50 @@ var (
 		Name: "airflow_import_errors",
 		Help: "Number of DAG import errors",
 	}, []string{"instance"})
+
+	// DAG inventory (WO-12)
+	DAGCount = prometheus.NewGaugeVec(prometheus.GaugeOpts{
+		Name: "airflow_dags_total",
+		Help: "Total number of DAGs",
+	}, []string{"instance"})
+	DAGPausedCount = prometheus.NewGaugeVec(prometheus.GaugeOpts{
+		Name: "airflow_dags_paused",
+		Help: "Number of paused DAGs",
+	}, []string{"instance"})
+
+	// Dataset events (WO-16)
+	DatasetEventsTotal = prometheus.NewGaugeVec(prometheus.GaugeOpts{
+		Name: "airflow_dataset_events_total",
+		Help: "Total number of recent dataset events",
+	}, []string{"instance"})
+
+	// Zombie tasks (WO-32)
+	ZombieTasks = prometheus.NewGaugeVec(prometheus.GaugeOpts{
+		Name: "airflow_zombie_tasks",
+		Help: "Number of suspected zombie tasks (running with stale heartbeat)",
+	}, []string{"instance"})
+
+	// SLA misses (WO-13)
+	SLAMissesTotal = prometheus.NewGaugeVec(prometheus.GaugeOpts{
+		Name: "airflow_sla_misses_total",
+		Help: "Total SLA misses from metadata database",
+	}, []string{"instance"})
+
+	// XCom bloat (WO-14)
+	XComRowCount = prometheus.NewGaugeVec(prometheus.GaugeOpts{
+		Name: "airflow_xcom_rows",
+		Help: "Number of rows in the xcom table",
+	}, []string{"instance"})
+	XComTotalBytes = prometheus.NewGaugeVec(prometheus.GaugeOpts{
+		Name: "airflow_xcom_bytes",
+		Help: "Estimated total size of xcom values in bytes",
+	}, []string{"instance"})
+
+	// Executor (WO-15)
+	ExecutorSlots = prometheus.NewGaugeVec(prometheus.GaugeOpts{
+		Name: "airflow_executor_slots",
+		Help: "Executor slot count by state",
+	}, []string{"instance", "state"})
 )
 
 func init() {
@@ -84,5 +128,11 @@ func init() {
 		TaskInstancesByState, TaskInstancesTotal,
 		PoolOpenSlots, PoolUsedSlots, PoolQueuedSlots, PoolTotalSlots,
 		ImportErrorsCount,
+		DAGCount, DAGPausedCount,
+		DatasetEventsTotal,
+		ZombieTasks,
+		SLAMissesTotal,
+		XComRowCount, XComTotalBytes,
+		ExecutorSlots,
 	)
 }

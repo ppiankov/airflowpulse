@@ -1,0 +1,11 @@
+apiVersion: v2
+name: airflowpulse
+description: A heartbeat monitor for Apache Airflow
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+home: https://github.com/ppiankov/airflowpulse
+sources:
+  - https://github.com/ppiankov/airflowpulse
+maintainers:
+  - name: ppiankov

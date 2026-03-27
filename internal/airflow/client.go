@@ -203,6 +203,53 @@ func (c *Client) ListImportErrors(ctx context.Context) (*ImportErrorList, error)
 	return &resp, nil
 }
 
+// DatasetEventList represents GET /datasets/events response.
+type DatasetEventList struct {
+	DatasetEvents []DatasetEvent `json:"dataset_events"`
+	TotalEntries  int            `json:"total_entries"`
+}
+
+// DatasetEvent represents a single dataset event.
+type DatasetEvent struct {
+	DatasetURI   string `json:"dataset_uri"`
+	SourceDagID  string `json:"source_dag_id"`
+	SourceTaskID string `json:"source_task_id"`
+	SourceRunID  string `json:"source_run_id"`
+	Timestamp    string `json:"timestamp"`
+}
+
+// ListDatasetEvents lists dataset events (Airflow 2.4+).
+func (c *Client) ListDatasetEvents(ctx context.Context, limit int) (*DatasetEventList, error) {
+	params := url.Values{"limit": {fmt.Sprintf("%d", limit)}, "order_by": {"-timestamp"}}
+	var resp DatasetEventList
+	if err := c.get(ctx, "/datasets/events", params, &resp); err != nil {
+		return nil, err
+	}
+	return &resp, nil
+}
+
+// TaskDetail represents a task within a DAG (from GET /dags/{dag_id}/tasks).
+type TaskDetail struct {
+	TaskID            string   `json:"task_id"`
+	DownstreamTaskIDs []string `json:"downstream_task_ids"`
+}
+
+// TaskDetailList represents GET /dags/{dag_id}/tasks response.
+type TaskDetailList struct {
+	Tasks        []TaskDetail `json:"tasks"`
+	TotalEntries int          `json:"total_entries"`
+}
+
+// GetDAGTasks returns task definitions for a DAG (for dependency graph).
+func (c *Client) GetDAGTasks(ctx context.Context, dagID string) (*TaskDetailList, error) {
+	path := fmt.Sprintf("/dags/%s/tasks", url.PathEscape(dagID))
+	var resp TaskDetailList
+	if err := c.get(ctx, path, nil, &resp); err != nil {
+		return nil, err
+	}
+	return &resp, nil
+}
+
 func (c *Client) get(ctx context.Context, path string, params url.Values, out any) error {
 	u := c.baseURL + path
 	if len(params) > 0 {

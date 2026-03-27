@@ -1,0 +1,56 @@
+{{- if .Values.prometheusRule.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: {{ include "airflowpulse.fullname" . }}
+  labels:
+    {{- include "airflowpulse.labels" . | nindent 4 }}
+    {{- with .Values.prometheusRule.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  groups:
+    - name: airflowpulse
+      rules:
+        - alert: AirflowDown
+          expr: airflow_up == 0
+          for: 2m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Airflow instance {{ "{{" }} $labels.instance {{ "}}" }} is unreachable"
+        - alert: AirflowSchedulerUnhealthy
+          expr: airflow_scheduler_healthy == 0
+          for: 1m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Airflow scheduler on {{ "{{" }} $labels.instance {{ "}}" }} is unhealthy"
+        - alert: AirflowSchedulerHeartbeatStale
+          expr: airflow_scheduler_heartbeat_seconds_ago > 60
+          for: 2m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Scheduler heartbeat on {{ "{{" }} $labels.instance {{ "}}" }} is {{ "{{" }} $value {{ "}}" }}s stale"
+        - alert: AirflowPoolExhausted
+          expr: airflow_pool_open_slots == 0 and airflow_pool_queued_slots > 0
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Pool {{ "{{" }} $labels.pool {{ "}}" }} on {{ "{{" }} $labels.instance {{ "}}" }} is exhausted with {{ "{{" }} $value {{ "}}" }} queued tasks"
+        - alert: AirflowImportErrors
+          expr: airflow_import_errors > 0
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "{{ "{{" }} $value {{ "}}" }} DAG import errors on {{ "{{" }} $labels.instance {{ "}}" }}"
+        - alert: AirflowDAGRunsFailed
+          expr: increase(airflow_dag_runs_total{state="failed"}[15m]) > 3
+          labels:
+            severity: warning
+          annotations:
+            summary: "More than 3 DAG run failures in 15m on {{ "{{" }} $labels.instance {{ "}}" }}"
+{{- end }}

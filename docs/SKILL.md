@@ -154,6 +154,69 @@ Live TUI dashboard. Full-screen terminal view showing scheduler health, pools, D
 
 ---
 
+### `airflowpulse history <dag_id> <task_id> [--runs N] [--format text|json]`
+
+Show last N runs of a task with duration trend, state, retries, and sparkline.
+
+**Flags:**
+- `--format text|json` — output format (default: text)
+- `--runs N` — number of recent runs (default: 10)
+
+**Exit codes:** 0 = success, 1 = DAG/task not found
+
+**Parsing example:**
+```bash
+airflowpulse history etl_daily load_data --format json | jq '.stats.failure_rate'
+```
+
+---
+
+### `airflowpulse diff [--since DURATION] [--format text|json]`
+
+Compare current Airflow state against a previous snapshot. Shows new failures, recoveries, pool changes.
+
+**Flags:**
+- `--format text|json` — output format (default: text)
+
+**Exit codes:** 0 = success (no changes or changes detected)
+
+**Parsing example:**
+```bash
+airflowpulse diff --format json | jq '.new_failures[]'
+```
+
+---
+
+### `airflowpulse deps <dag_id> [--task TASK] [--format text|json|dot]`
+
+Show task dependency graph for a DAG in ASCII, JSON, or DOT format.
+
+**Flags:**
+- `--format text|json|dot` — output format (default: text)
+- `--task TASK` — highlight a specific task
+
+**Exit codes:** 0 = success, 1 = DAG not found
+
+**Parsing example:**
+```bash
+airflowpulse deps etl_daily --format dot | dot -Tpng -o deps.png
+```
+
+---
+
+### `airflowpulse stream`
+
+Continuous JSON-lines event stream for AI agent consumption. Emits state change events.
+
+**Exit codes:** 0 = clean exit (Ctrl+C)
+
+**Parsing example:**
+```bash
+airflowpulse stream | jq 'select(.severity == "critical")'
+```
+
+---
+
 ### `airflowpulse init`
 
 Print default .env configuration with all supported environment variables.

@@ -1,0 +1,117 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Validate CHANGELOG entry
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          if ! grep -q "## \[${VERSION}\]" CHANGELOG.md; then
+            echo "ERROR: No CHANGELOG.md entry for version ${VERSION}"
+            exit 1
+          fi
+
+      - name: Run tests
+        run: go test -race -count=1 ./...
+
+      - name: Build binaries
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          for GOOS in linux darwin; do
+            for GOARCH in amd64 arm64; do
+              OUTPUT="bin/airflowpulse-${GOOS}-${GOARCH}"
+              CGO_ENABLED=0 GOOS=${GOOS} GOARCH=${GOARCH} \
+                go build -ldflags "-X main.version=${VERSION}" \
+                -o "${OUTPUT}" ./cmd/airflowpulse
+            done
+          done
+
+      - name: Extract release notes from CHANGELOG
+        id: notes
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          awk "/^## \[${VERSION}\]/{flag=1; next} /^## \[/{flag=0} flag" CHANGELOG.md > /tmp/release-notes.md
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          body_path: /tmp/release-notes.md
+          files: bin/airflowpulse-*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update Homebrew tap
+        if: success()
+        env:
+          HOMEBREW_TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          DARWIN_AMD64_SHA=$(shasum -a 256 bin/airflowpulse-darwin-amd64 | cut -d' ' -f1)
+          DARWIN_ARM64_SHA=$(shasum -a 256 bin/airflowpulse-darwin-arm64 | cut -d' ' -f1)
+          LINUX_AMD64_SHA=$(shasum -a 256 bin/airflowpulse-linux-amd64 | cut -d' ' -f1)
+          LINUX_ARM64_SHA=$(shasum -a 256 bin/airflowpulse-linux-arm64 | cut -d' ' -f1)
+
+          FORMULA=$(cat <<FORMULA_EOF
+          class Airflowpulse < Formula
+            desc "Heartbeat monitor for Apache Airflow"
+            homepage "https://github.com/ppiankov/airflowpulse"
+            version "${VERSION}"
+            license "MIT"
+
+            on_macos do
+              if Hardware::CPU.arm?
+                url "https://github.com/ppiankov/airflowpulse/releases/download/v${VERSION}/airflowpulse-darwin-arm64"
+                sha256 "${DARWIN_ARM64_SHA}"
+              else
+                url "https://github.com/ppiankov/airflowpulse/releases/download/v${VERSION}/airflowpulse-darwin-amd64"
+                sha256 "${DARWIN_AMD64_SHA}"
+              end
+            end
+
+            on_linux do
+              if Hardware::CPU.arm?
+                url "https://github.com/ppiankov/airflowpulse/releases/download/v${VERSION}/airflowpulse-linux-arm64"
+                sha256 "${LINUX_ARM64_SHA}"
+              else
+                url "https://github.com/ppiankov/airflowpulse/releases/download/v${VERSION}/airflowpulse-linux-amd64"
+                sha256 "${LINUX_AMD64_SHA}"
+              end
+            end
+
+            def install
+              bin.install Dir["airflowpulse-*"].first => "airflowpulse"
+            end
+
+            test do
+              assert_match version.to_s, shell_output("#{bin}/airflowpulse version")
+            end
+          end
+          FORMULA_EOF
+          )
+
+          # Push to homebrew-tap repo
+          cd /tmp
+          git clone "https://x-access-token:${HOMEBREW_TAP_TOKEN}@github.com/ppiankov/homebrew-tap.git"
+          cd homebrew-tap
+          mkdir -p Formula
+          echo "${FORMULA}" > Formula/airflowpulse.rb
+          git add Formula/airflowpulse.rb
+          git commit -m "airflowpulse ${VERSION}"
+          git push
