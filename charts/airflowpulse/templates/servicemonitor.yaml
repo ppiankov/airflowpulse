@@ -16,4 +16,5 @@ spec:
     - port: metrics
       interval: {{ .Values.serviceMonitor.interval }}
       path: /metrics
+      honorLabels: true
 {{- end }}
