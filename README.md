@@ -107,7 +107,47 @@ helm upgrade --install airflowpulse charts/airflowpulse \
   --set image.tag=v0.1.1
 ```
 
-The API URL must include the port (typically `:8080`) and the `/api/v1` path suffix. The service name depends on your Airflow deployment — check with `kubectl get svc -n airflow`.
+### Prerequisites
+
+**API URL format:** must include the port (typically `:8080`) and the `/api/v1` path suffix. The service name depends on your Airflow deployment — check with `kubectl get svc -n airflow`.
+
+**Airflow API auth backend:** Airflow defaults to `session` auth which only works for browser sessions, not API clients. You must enable basic auth:
+
+```yaml
+# In your Airflow Helm values:
+config:
+  api:
+    auth_backends: "airflow.api.auth.backend.basic_auth,airflow.api.auth.backend.session"
+```
+
+Or via environment variable on the Airflow webserver deployment:
+
+```bash
+kubectl set env deploy/<airflow-web> -n airflow \
+  AIRFLOW__API__AUTH_BACKENDS="airflow.api.auth.backend.basic_auth,airflow.api.auth.backend.session"
+```
+
+**Dedicated API user (recommended):** create a read-only service account instead of using the admin user:
+
+```bash
+kubectl exec -n airflow -it deploy/<airflow-web> -c <container> -- \
+  airflow users create \
+    --username airflowpulse \
+    --password "<password>" \
+    --role Admin \
+    --firstname airflowpulse \
+    --lastname bot \
+    --email airflowpulse@local
+```
+
+### Troubleshooting
+
+| Symptom | Cause | Fix |
+|---------|-------|-----|
+| `airflow_up == 0`, logs show connection refused | Wrong API URL or port | Check URL includes `:8080/api/v1` |
+| `403 Forbidden` on all endpoints | Auth backend is `session` only | Enable `basic_auth` backend (see above) |
+| `Login Failed` in Airflow logs | Wrong password in Kubernetes secret | Verify with `kubectl get secret -n airflowpulse-system airflowpulse -o jsonpath='{.data.airflow-api-password}' \| base64 -d` |
+| `instance` label shows pod IP | Prometheus overwrites exporter labels | ServiceMonitor needs `honorLabels: true` (included by default) |
 
 ## Known Limitations
 
