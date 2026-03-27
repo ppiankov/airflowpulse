@@ -20,6 +20,9 @@ alerting:
   telegramChatID: ""
   webhookURL: ""
   cooldown: "5m"
+  # Custom labels included in all built-in alerts (Telegram/webhook).
+  # Example: labels: "team=dataopsteam,env=production"
+  labels: ""
 
 grafana:
   url: ""
@@ -34,6 +37,9 @@ serviceMonitor:
 prometheusRule:
   enabled: false
   labels: {}
+  # Custom labels added to every alert rule (e.g., team routing).
+  # Example: additionalRuleLabels: { team: dataopsteam }
+  additionalRuleLabels: {}
 
 resources:
   limits:

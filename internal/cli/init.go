@@ -37,6 +37,10 @@ POLL_INTERVAL=15s
 # Alert cooldown
 ALERT_COOLDOWN=5m
 
+# Custom labels included in all alerts (comma-separated key=value pairs)
+# These appear in Telegram messages and webhook JSON payloads
+# ALERT_LABELS=team=dataopsteam,env=production
+
 # Grafana annotations (optional)
 # GRAFANA_URL=
 # GRAFANA_TOKEN=

@@ -292,6 +292,7 @@ func (e *Engine) fireAlert(ctx context.Context, key, instance, severity, title, 
 		Instance: instance,
 		Title:    title,
 		Message:  message,
+		Labels:   e.cfg.AlertLabels,
 	}); err != nil {
 		log.Printf("alert failed: %v", err)
 	}

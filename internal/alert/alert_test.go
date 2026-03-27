@@ -112,7 +112,9 @@ func TestSenderSendTelegramAndWebhook(t *testing.T) {
 	if !strings.Contains(telegramText, "Instance: airflow.example") {
 		t.Fatalf("telegram text = %q", telegramText)
 	}
-	if webhookAlert != alert {
+	if webhookAlert.Key != alert.Key || webhookAlert.Severity != alert.Severity ||
+		webhookAlert.Instance != alert.Instance || webhookAlert.Title != alert.Title ||
+		webhookAlert.Message != alert.Message {
 		t.Fatalf("webhook alert = %#v, want %#v", webhookAlert, alert)
 	}
 }

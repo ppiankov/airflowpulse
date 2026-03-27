@@ -58,6 +58,10 @@ spec:
             {{- end }}
             - name: ALERT_COOLDOWN
               value: {{ .Values.alerting.cooldown | quote }}
+            {{- if .Values.alerting.labels }}
+            - name: ALERT_LABELS
+              value: {{ .Values.alerting.labels | quote }}
+            {{- end }}
             {{- if .Values.grafana.url }}
             - name: GRAFANA_URL
               value: {{ .Values.grafana.url | quote }}

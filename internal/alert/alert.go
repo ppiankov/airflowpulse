@@ -51,11 +51,12 @@ func (s *Sender) Enabled() bool {
 
 // Alert describes a single alert to send.
 type Alert struct {
-	Key      string `json:"key"`
-	Severity string `json:"severity"`
-	Instance string `json:"instance"`
-	Title    string `json:"title"`
-	Message  string `json:"message"`
+	Key      string            `json:"key"`
+	Severity string            `json:"severity"`
+	Instance string            `json:"instance"`
+	Title    string            `json:"title"`
+	Message  string            `json:"message"`
+	Labels   map[string]string `json:"labels,omitempty"`
 }
 
 // Send dispatches an alert if cooldown allows.
@@ -88,6 +89,9 @@ func (s *Sender) Send(ctx context.Context, a Alert) error {
 func (s *Sender) sendTelegram(ctx context.Context, a Alert) error {
 	url := fmt.Sprintf("%s/bot%s/sendMessage", telegramAPIBaseURL, s.telegramToken)
 	text := fmt.Sprintf("[%s] %s\n%s\nInstance: %s", a.Severity, a.Title, a.Message, a.Instance)
+	for k, v := range a.Labels {
+		text += fmt.Sprintf("\n%s: %s", k, v)
+	}
 
 	body, _ := json.Marshal(map[string]string{
 		"chat_id": s.telegramChatID,

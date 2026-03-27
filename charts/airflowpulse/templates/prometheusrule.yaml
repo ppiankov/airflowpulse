@@ -17,6 +17,9 @@ spec:
           for: 2m
           labels:
             severity: critical
+            {{- with .Values.prometheusRule.additionalRuleLabels }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
           annotations:
             summary: "Airflow instance {{ "{{" }} $labels.instance {{ "}}" }} is unreachable"
         - alert: AirflowSchedulerUnhealthy
@@ -24,6 +27,9 @@ spec:
           for: 1m
           labels:
             severity: critical
+            {{- with .Values.prometheusRule.additionalRuleLabels }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
           annotations:
             summary: "Airflow scheduler on {{ "{{" }} $labels.instance {{ "}}" }} is unhealthy"
         - alert: AirflowSchedulerHeartbeatStale
@@ -31,6 +37,9 @@ spec:
           for: 2m
           labels:
             severity: warning
+            {{- with .Values.prometheusRule.additionalRuleLabels }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
           annotations:
             summary: "Scheduler heartbeat on {{ "{{" }} $labels.instance {{ "}}" }} is {{ "{{" }} $value {{ "}}" }}s stale"
         - alert: AirflowPoolExhausted
@@ -38,6 +47,9 @@ spec:
           for: 5m
           labels:
             severity: warning
+            {{- with .Values.prometheusRule.additionalRuleLabels }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
           annotations:
             summary: "Pool {{ "{{" }} $labels.pool {{ "}}" }} on {{ "{{" }} $labels.instance {{ "}}" }} is exhausted with {{ "{{" }} $value {{ "}}" }} queued tasks"
         - alert: AirflowImportErrors
@@ -45,12 +57,18 @@ spec:
           for: 5m
           labels:
             severity: warning
+            {{- with .Values.prometheusRule.additionalRuleLabels }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
           annotations:
             summary: "{{ "{{" }} $value {{ "}}" }} DAG import errors on {{ "{{" }} $labels.instance {{ "}}" }}"
         - alert: AirflowDAGRunsFailed
           expr: increase(airflow_dag_runs_total{state="failed"}[15m]) > 3
           labels:
             severity: warning
+            {{- with .Values.prometheusRule.additionalRuleLabels }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
           annotations:
             summary: "More than 3 DAG run failures in 15m on {{ "{{" }} $labels.instance {{ "}}" }}"
 {{- end }}

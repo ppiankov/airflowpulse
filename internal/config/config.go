@@ -29,6 +29,7 @@ type Config struct {
 	TelegramChatID   string
 	AlertWebhookURL  string
 	AlertCooldown    time.Duration
+	AlertLabels      map[string]string
 
 	// Grafana annotations
 	GrafanaURL          string
@@ -59,6 +60,7 @@ func Load() (*Config, error) {
 		TelegramChatID:      os.Getenv("TELEGRAM_CHAT_ID"),
 		AlertWebhookURL:     os.Getenv("ALERT_WEBHOOK_URL"),
 		AlertCooldown:       envDuration("ALERT_COOLDOWN", 5*time.Minute),
+		AlertLabels:         parseLabels(os.Getenv("ALERT_LABELS")),
 		GrafanaURL:          os.Getenv("GRAFANA_URL"),
 		GrafanaToken:        os.Getenv("GRAFANA_TOKEN"),
 		GrafanaDashboardUID: os.Getenv("GRAFANA_DASHBOARD_UID"),
@@ -72,6 +74,25 @@ func InstanceLabel(apiURL string) string {
 		return apiURL
 	}
 	return u.Host
+}
+
+// parseLabels parses "key1=val1,key2=val2" into a map.
+func parseLabels(raw string) map[string]string {
+	if raw == "" {
+		return nil
+	}
+	labels := make(map[string]string)
+	for _, pair := range strings.Split(raw, ",") {
+		pair = strings.TrimSpace(pair)
+		k, v, ok := strings.Cut(pair, "=")
+		if ok && k != "" {
+			labels[strings.TrimSpace(k)] = strings.TrimSpace(v)
+		}
+	}
+	if len(labels) == 0 {
+		return nil
+	}
+	return labels
 }
 
 func envInt(key string, def int) int {
