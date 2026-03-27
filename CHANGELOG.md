@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.2] - 2026-03-27
+
+### Fixed
+- Add `honorLabels: true` to ServiceMonitor (prevents Prometheus overwriting instance label with pod IP)
+- Fix git identity for Homebrew tap push in release workflow
+
+### Added
+- Kubernetes deployment prerequisites and troubleshooting guide in README
+- Link LICENSE in README
+
 ## [0.1.1] - 2026-03-27
 
 ### Fixed
