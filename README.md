@@ -91,6 +91,24 @@ Metadata DB (optional) ↗                    → /healthz
                                             → TUI dashboard (pulse)
 ```
 
+## Kubernetes Deployment
+
+```bash
+helm upgrade --install airflowpulse charts/airflowpulse \
+  -n airflowpulse-system --create-namespace \
+  --set airflow.apiURL="http://airflow-webserver.airflow.svc.cluster.local:8080/api/v1" \
+  --set airflow.apiUser="admin" \
+  --set airflow.apiPassword="<password>" \
+  --set serviceMonitor.enabled=true \
+  --set serviceMonitor.labels.release=prometheus-operator \
+  --set prometheusRule.enabled=true \
+  --set prometheusRule.labels.release=prometheus-operator \
+  --set prometheusRule.additionalRuleLabels.team=<your-team> \
+  --set image.tag=v0.1.1
+```
+
+The API URL must include the port (typically `:8080`) and the `/api/v1` path suffix. The service name depends on your Airflow deployment — check with `kubectl get svc -n airflow`.
+
 ## Known Limitations
 
 - Requires Airflow 2.0+ REST API (stable API)
