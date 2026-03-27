@@ -104,4 +104,4 @@ See work orders in workledger (project: airflowpulse).
 
 ## License
 
-MIT
+[MIT](LICENSE)
