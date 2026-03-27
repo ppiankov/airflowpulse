@@ -75,6 +75,18 @@ func runDoctor(cmd *cobra.Command, args []string) error {
 		Status:  overall,
 		Version: appVersion,
 		Checks:  checks,
+		Provenance: map[string]string{
+			"status":                 "inferred",
+			"version":                "declared",
+			"checks.*.status":        "inferred",
+			"checks.*.message":       "observed",
+			"scheduler.status":       "observed",
+			"scheduler.heartbeat":    "observed",
+			"metadatabase.status":    "observed",
+			"pools_endpoint":         "observed",
+			"dags_endpoint":          "observed",
+			"import_errors_endpoint": "observed",
+		},
 	}
 
 	if format == "json" {

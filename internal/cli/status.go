@@ -32,8 +32,9 @@ func init() {
 
 // StatusResult is the top-level status output.
 type StatusResult struct {
-	Instances []InstanceStatus `json:"instances"`
-	Filters   *StatusFilters   `json:"filters,omitempty"`
+	Instances  []InstanceStatus  `json:"instances"`
+	Filters    *StatusFilters    `json:"filters,omitempty"`
+	Provenance map[string]string `json:"provenance,omitempty"`
 }
 
 // StatusFilters records applied filters.
@@ -99,7 +100,19 @@ func runStatus(cmd *cobra.Command, args []string) error {
 		instances = append(instances, is)
 	}
 
-	result := StatusResult{Instances: instances, Filters: filters}
+	result := StatusResult{
+		Instances: instances,
+		Filters:   filters,
+		Provenance: map[string]string{
+			"instances.*.scheduler":     "observed",
+			"instances.*.metadatabase":  "observed",
+			"instances.*.heartbeat_age": "inferred",
+			"instances.*.dag_runs":      "observed",
+			"instances.*.pools":         "observed",
+			"instances.*.import_errors": "observed",
+			"filters":                   "declared",
+		},
+	}
 
 	if format == "json" {
 		enc := json.NewEncoder(cmd.OutOrStdout())

@@ -27,13 +27,14 @@ func init() {
 
 // WhyResult is the top-level investigation output.
 type WhyResult struct {
-	DagID    string       `json:"dag_id"`
-	TaskID   string       `json:"task_id"`
-	RunID    string       `json:"run_id"`
-	Instance string       `json:"instance"`
-	State    string       `json:"state"`
-	Verdict  string       `json:"verdict"`
-	Chain    []WhyFinding `json:"chain"`
+	DagID      string            `json:"dag_id"`
+	TaskID     string            `json:"task_id"`
+	RunID      string            `json:"run_id"`
+	Instance   string            `json:"instance"`
+	State      string            `json:"state"`
+	Verdict    string            `json:"verdict"`
+	Chain      []WhyFinding      `json:"chain"`
+	Provenance map[string]string `json:"provenance,omitempty"`
 }
 
 // WhyFinding is a single step in the root cause chain.
@@ -84,6 +85,16 @@ func investigateTask(ctx context.Context, client *airflow.Client, instance, dagI
 		DagID:    dagID,
 		TaskID:   taskID,
 		Instance: instance,
+		Provenance: map[string]string{
+			"state":               "observed",
+			"verdict":             "inferred",
+			"chain.*.status":      "inferred",
+			"chain.*.detail":      "observed",
+			"chain.*.remediation": "inferred",
+			"scheduler.status":    "observed",
+			"scheduler.heartbeat": "observed",
+			"pool.slots":          "observed",
+		},
 	}
 
 	// Find the DAG run.

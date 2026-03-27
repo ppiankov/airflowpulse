@@ -29,11 +29,12 @@ func init() {
 
 // HistoryResult is the output for the history command.
 type HistoryResult struct {
-	DagID    string         `json:"dag_id"`
-	TaskID   string         `json:"task_id"`
-	Instance string         `json:"instance"`
-	Runs     []HistoryEntry `json:"runs"`
-	Stats    *HistoryStats  `json:"stats,omitempty"`
+	DagID      string            `json:"dag_id"`
+	TaskID     string            `json:"task_id"`
+	Instance   string            `json:"instance"`
+	Runs       []HistoryEntry    `json:"runs"`
+	Stats      *HistoryStats     `json:"stats,omitempty"`
+	Provenance map[string]string `json:"provenance,omitempty"`
 }
 
 // HistoryEntry is a single run record.
@@ -88,7 +89,21 @@ func runHistory(cmd *cobra.Command, args []string) error {
 }
 
 func fetchHistory(ctx context.Context, client *airflow.Client, instance, dagID, taskID string, numRuns int) (HistoryResult, bool) {
-	result := HistoryResult{DagID: dagID, TaskID: taskID, Instance: instance}
+	result := HistoryResult{
+		DagID:    dagID,
+		TaskID:   taskID,
+		Instance: instance,
+		Provenance: map[string]string{
+			"runs.*.state":       "observed",
+			"runs.*.duration":    "observed",
+			"runs.*.retries":     "observed",
+			"runs.*.date":        "observed",
+			"stats.mean":         "inferred",
+			"stats.p95":          "inferred",
+			"stats.failure_rate": "inferred",
+			"stats.trend":        "inferred",
+		},
+	}
 
 	runs, err := client.ListDAGRuns(ctx, dagID, numRuns)
 	if err != nil || len(runs.DAGRuns) == 0 {

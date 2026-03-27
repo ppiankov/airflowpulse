@@ -7,6 +7,8 @@ import (
 	"github.com/ppiankov/airflowpulse/internal/metrics"
 )
 
+const defaultZombieThreshold = 3600.0 // seconds — tasks running longer than this are suspected zombies
+
 // TaskInstances collects task instance state counts for active DAG runs.
 type TaskInstances struct{}
 
@@ -24,6 +26,7 @@ func (t *TaskInstances) Collect(ctx context.Context, client *airflow.Client, ins
 
 	perDAG := make(map[string]map[string]int)
 	totals := make(map[string]int)
+	zombies := 0
 
 	for _, r := range runs.DAGRuns {
 		tasks, terr := client.ListTaskInstances(ctx, r.DagID, r.DagRunID)
@@ -40,6 +43,11 @@ func (t *TaskInstances) Collect(ctx context.Context, client *airflow.Client, ins
 			}
 			perDAG[r.DagID][state]++
 			totals[state]++
+
+			// Zombie detection: running tasks with duration exceeding threshold.
+			if state == "running" && ti.Duration != nil && *ti.Duration > defaultZombieThreshold {
+				zombies++
+			}
 		}
 	}
 
@@ -51,6 +59,8 @@ func (t *TaskInstances) Collect(ctx context.Context, client *airflow.Client, ins
 	for state, count := range totals {
 		metrics.TaskInstancesTotal.WithLabelValues(instance, state).Set(float64(count))
 	}
+
+	metrics.ZombieTasks.WithLabelValues(instance).Set(float64(zombies))
 
 	return nil
 }
