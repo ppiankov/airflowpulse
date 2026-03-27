@@ -32,14 +32,41 @@ airflowpulse serve
 ## Usage
 
 ```bash
-# Start exporter
+# Start exporter (poll loop + /metrics + /healthz)
 airflowpulse serve
 
-# Health check
+# Start exporter with JSON event stream on stdout
+airflowpulse serve --stream
+
+# Diagnose connectivity, auth, scheduler, endpoints
 airflowpulse doctor --format json
 
-# One-shot status
+# One-shot cluster health summary
 airflowpulse status --format json
+
+# Filter status by DAG pattern, state, or pool
+airflowpulse status --dag '*etl*' --state failed --pool default
+
+# Continuous status refresh
+airflowpulse status --watch
+
+# Investigate why a task is stuck
+airflowpulse why etl_daily load_data --format json
+
+# Live TUI dashboard (htop for Airflow)
+airflowpulse pulse
+
+# Task run history with duration trend
+airflowpulse history etl_daily extract_data --runs 20
+
+# What changed since last check
+airflowpulse diff --format json
+
+# Task dependency graph (ASCII, JSON, or DOT)
+airflowpulse deps etl_daily --format dot | dot -Tpng -o deps.png
+
+# Continuous JSON event stream for agents/scripts
+airflowpulse stream | jq 'select(.severity == "critical")'
 
 # Print default config
 airflowpulse init > .env
@@ -60,6 +87,8 @@ Airflow REST API → airflowpulse (poll loop) → /metrics → Prometheus → Gr
 Metadata DB (optional) ↗                    → /healthz
                                             → Telegram/webhook alerts
                                             → Grafana annotations
+                                            → JSON event stream (stdout)
+                                            → TUI dashboard (pulse)
 ```
 
 ## Known Limitations

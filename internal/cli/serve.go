@@ -25,6 +25,16 @@ var serveCmd = &cobra.Command{
 		defer stop()
 
 		eng := engine.New(cfg)
+
+		stream, _ := cmd.Flags().GetBool("stream")
+		if stream {
+			eng.EnableStream()
+		}
+
 		return eng.Run(ctx)
 	},
+}
+
+func init() {
+	serveCmd.Flags().Bool("stream", false, "Output JSON-lines event stream to stdout alongside metrics server")
 }

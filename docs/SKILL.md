@@ -16,28 +16,30 @@ go install github.com/ppiankov/airflowpulse/cmd/airflowpulse@latest
 
 ## Commands
 
-### `airflowpulse serve`
+### serve
 
 Start the poll loop and HTTP server exposing /metrics and /healthz.
 
-**Flags:** none (configured via environment variables)
+**Flags:**
+- `--stream` — output JSON-lines event stream to stdout alongside metrics server
 
-**Exit codes:** 0 = clean shutdown, 1 = startup failure
+**Exit codes:**
+- 0: clean shutdown
+- 1: startup failure
 
-**JSON output:** N/A (long-running server)
-
----
-
-### `airflowpulse doctor [--format text|json]`
+### doctor
 
 Diagnose API connectivity, authentication, scheduler health, and endpoint permissions.
 
 **Flags:**
-- `--format text|json` — output format (default: text)
+- `--format json` — output as JSON (default: text)
 
-**Exit codes:** 0 = all checks pass, 1 = any check failed, 2 = warnings only
+**Exit codes:**
+- 0: all checks pass
+- 1: any check failed
+- 2: warnings only
 
-**JSON schema:**
+**JSON output:**
 ```json
 {
   "status": "pass|warn|fail",
@@ -48,35 +50,30 @@ Diagnose API connectivity, authentication, scheduler health, and endpoint permis
       "instance": "string",
       "status": "pass|warn|fail",
       "message": "string",
-      "remediation": "string (optional)"
+      "remediation": "string"
     }
   ],
   "provenance": { "field.path": "observed|declared|inferred|unknown" }
 }
 ```
 
-**Parsing example:**
-```bash
-airflowpulse doctor --format json | jq '.checks[] | select(.status == "fail")'
-```
-
----
-
-### `airflowpulse status [--format text|json] [--dag PATTERN] [--state STATE] [--pool NAME] [--watch]`
+### status
 
 One-shot health summary of all configured Airflow instances.
 
 **Flags:**
-- `--format text|json` — output format (default: text)
+- `--format json` — output as JSON (default: text)
 - `--dag PATTERN` — filter DAGs by glob pattern
 - `--state STATE` — filter by run state (comma-separated: failed,running)
 - `--pool NAME` — filter pools by name
-- `--watch, -w` — continuously refresh
+- `--watch` — continuously refresh
 - `--interval DURATION` — watch refresh interval
 
-**Exit codes:** 0 = success, 1 = failure
+**Exit codes:**
+- 0: success
+- 1: failure
 
-**JSON schema:**
+**JSON output:**
 ```json
 {
   "instances": [
@@ -85,39 +82,34 @@ One-shot health summary of all configured Airflow instances.
       "scheduler": "healthy|unhealthy",
       "metadatabase": "healthy|unhealthy",
       "heartbeat_age": "string",
-      "dag_runs": { "state": "count" },
+      "dag_runs": { "state": 0 },
       "pools": [
         { "name": "string", "used": 0, "queued": 0, "open": 0, "total": 0 }
       ],
       "import_errors": 0
     }
   ],
-  "filters": { "dag": "string", "state": ["string"], "pool": "string" }
+  "filters": { "dag": "string", "state": ["string"], "pool": "string" },
+  "provenance": { "field.path": "observed|declared|inferred" }
 }
 ```
 
-**Parsing examples:**
-```bash
-# Failed DAG runs
-airflowpulse status --format json | jq '.instances[].dag_runs.failed // 0'
+### why
 
-# Pools with zero open slots
-airflowpulse status --format json | jq '.instances[].pools[] | select(.open == 0)'
-```
+Investigate why a task is stuck, failed, or slow. Traces the root cause chain.
 
----
-
-### `airflowpulse why <dag_id> <task_id> [--run-id ID] [--format text|json]`
-
-Investigate why a task is stuck, failed, or slow. Traces the root cause chain: pool capacity, scheduler health, upstream dependencies.
+Usage: `airflowpulse why <dag_id> <task_id> [--run-id ID]`
 
 **Flags:**
-- `--format text|json` — output format (default: text)
+- `--format json` — output as JSON (default: text)
 - `--run-id ID` — specific DAG run ID (default: latest)
 
-**Exit codes:** 0 = task healthy, 1 = problem found, 2 = partial (some checks failed)
+**Exit codes:**
+- 0: task healthy
+- 1: problem found
+- 2: partial results
 
-**JSON schema:**
+**JSON output:**
 ```json
 {
   "dag_id": "string",
@@ -131,105 +123,80 @@ Investigate why a task is stuck, failed, or slow. Traces the root cause chain: p
       "check": "string",
       "status": "pass|warn|fail",
       "detail": "string",
-      "remediation": "string (optional)"
+      "remediation": "string"
     }
-  ]
+  ],
+  "provenance": { "field.path": "observed|inferred" }
 }
 ```
 
-**Parsing example:**
-```bash
-airflowpulse why etl_daily load_data --format json | jq '.chain[] | select(.status == "fail")'
-```
+### pulse
 
----
+Live TUI dashboard showing scheduler health, pools, DAG runs, and import errors.
 
-### `airflowpulse pulse`
+Keybindings: q=quit, /=filter, Tab=switch instance, j/k=scroll
 
-Live TUI dashboard. Full-screen terminal view showing scheduler health, pools, DAG runs, and import errors.
+**Exit codes:**
+- 0: clean exit
 
-**Keybindings:** q=quit, /=filter, Tab=switch instance, j/k=scroll
-
-**Exit codes:** 0 = clean exit
-
----
-
-### `airflowpulse history <dag_id> <task_id> [--runs N] [--format text|json]`
+### history
 
 Show last N runs of a task with duration trend, state, retries, and sparkline.
 
+Usage: `airflowpulse history <dag_id> <task_id>`
+
 **Flags:**
-- `--format text|json` — output format (default: text)
+- `--format json` — output as JSON (default: text)
 - `--runs N` — number of recent runs (default: 10)
 
-**Exit codes:** 0 = success, 1 = DAG/task not found
+**Exit codes:**
+- 0: success
+- 1: DAG or task not found
 
-**Parsing example:**
-```bash
-airflowpulse history etl_daily load_data --format json | jq '.stats.failure_rate'
-```
+### diff
 
----
-
-### `airflowpulse diff [--since DURATION] [--format text|json]`
-
-Compare current Airflow state against a previous snapshot. Shows new failures, recoveries, pool changes.
+Compare current Airflow state against a previous snapshot.
 
 **Flags:**
-- `--format text|json` — output format (default: text)
+- `--format json` — output as JSON (default: text)
 
-**Exit codes:** 0 = success (no changes or changes detected)
+**Exit codes:**
+- 0: success
 
-**Parsing example:**
-```bash
-airflowpulse diff --format json | jq '.new_failures[]'
-```
+### deps
 
----
+Show task dependency graph for a DAG.
 
-### `airflowpulse deps <dag_id> [--task TASK] [--format text|json|dot]`
-
-Show task dependency graph for a DAG in ASCII, JSON, or DOT format.
+Usage: `airflowpulse deps <dag_id>`
 
 **Flags:**
-- `--format text|json|dot` — output format (default: text)
+- `--format json` — output as JSON (default: text). Also supports `dot` for graphviz
 - `--task TASK` — highlight a specific task
 
-**Exit codes:** 0 = success, 1 = DAG not found
+**Exit codes:**
+- 0: success
+- 1: DAG not found
 
-**Parsing example:**
-```bash
-airflowpulse deps etl_daily --format dot | dot -Tpng -o deps.png
-```
+### stream
 
----
+Continuous JSON-lines event stream for AI agent consumption.
 
-### `airflowpulse stream`
+**Exit codes:**
+- 0: clean exit
 
-Continuous JSON-lines event stream for AI agent consumption. Emits state change events.
-
-**Exit codes:** 0 = clean exit (Ctrl+C)
-
-**Parsing example:**
-```bash
-airflowpulse stream | jq 'select(.severity == "critical")'
-```
-
----
-
-### `airflowpulse init`
+### init
 
 Print default .env configuration with all supported environment variables.
 
-**Exit codes:** 0 = success
+**Exit codes:**
+- 0: success
 
----
+### version
 
-### `airflowpulse version`
+Print airflowpulse version.
 
-Print version.
-
-**Exit codes:** 0 = success
+**Exit codes:**
+- 0: success
 
 ## What this does NOT do
 
@@ -238,6 +205,31 @@ Print version.
 - Does NOT **replace** Airflow's built-in StatsD/Prometheus integration — it adds operational visibility the built-in metrics don't cover
 - Does NOT **manage** Airflow configuration, connections, variables, or pools — read-only access only
 - Does NOT **own** alerting delivery infrastructure — it fires webhooks; PagerDuty/Slack/OpsGenie routes them
+
+## Parsing examples
+
+```bash
+# Get failed doctor checks
+airflowpulse doctor --format json | jq '.checks[] | select(.status == "fail")'
+
+# Count failed DAG runs
+airflowpulse status --format json | jq '.instances[].dag_runs.failed // 0'
+
+# Find exhausted pools
+airflowpulse status --format json | jq '.instances[].pools[] | select(.open == 0)'
+
+# Get root cause for stuck task
+airflowpulse why etl_daily load_data --format json | jq '.chain[] | select(.status == "fail")'
+
+# Task failure rate
+airflowpulse history etl_daily extract --format json | jq '.stats.failure_rate'
+
+# New failures since last check
+airflowpulse diff --format json | jq '.new_failures[]'
+
+# Filter critical events from stream
+airflowpulse stream | jq 'select(.severity == "critical")'
+```
 
 ## Handoffs
 
@@ -248,6 +240,8 @@ Print version.
 | Doctor fail verdict | Runbook automation | `airflow` CLI, kubectl |
 | Webhook alert | Incident management | PagerDuty, OpsGenie |
 | Grafana annotation | Dashboard | Grafana |
+| `--format dot` | Graph renderer | `graphviz` |
+| JSON-lines stream | Agent pipeline | `jq`, custom scripts |
 
 ## Failure Modes
 
@@ -258,6 +252,7 @@ Print version.
 | Partial collector failure | Working collectors continue, failed ones log error | `airflow_scrape_errors_total` incremented per failure |
 | Scheduler endpoint stale | Doctor/status report `warn` if heartbeat > 30s | Check scheduler process directly |
 | Pool endpoint 403 | Pool metrics unavailable, other collectors unaffected | Grant API user pool read permissions |
+| Dataset events 404 | Graceful degradation (Airflow <2.4) | No dataset metrics emitted |
 
 ## Provenance
 
